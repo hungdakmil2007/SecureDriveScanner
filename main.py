@@ -2,7 +2,7 @@ import os
 import sys
 
 
-#display the main menu
+# Display the main menu
 def show_menu():
     print("\nSecureDrive Scanner")
     print("-------------------")
@@ -10,7 +10,7 @@ def show_menu():
     print("2. Exit")
 
 
-#get the menu choice and convert it to an integer
+# Get the menu choice and convert it to an integer
 def get_menu_choice():
     try:
         choice = int(input("Choose an option: "))
@@ -19,7 +19,7 @@ def get_menu_choice():
         return 0
 
 
-#ask the user for a path and check if it exists
+# Ask the user for a path and check if it exists
 def get_scan_path():
     scan_path = input("Enter USB or folder path: ").strip()
 
@@ -31,6 +31,19 @@ def get_scan_path():
     return None
 
 
+# Scan all files inside the selected folder and its subfolders
+def scan_folder(scan_path):
+    scanned_files = []
+
+    for root, folders, files in os.walk(scan_path):
+        for file_name in files:
+            file_path = os.path.join(root, file_name)
+            scanned_files.append(file_path)
+            print("File found:", file_path)
+
+    return scanned_files
+
+
 def main():
     while True:
         show_menu()
@@ -40,7 +53,11 @@ def main():
             scan_path = get_scan_path()
 
             if scan_path is not None:
-                print("The folder is ready to scan.")
+                print("\nScanning files...\n")
+                scanned_files = scan_folder(scan_path)
+
+                print("\nScan completed.")
+                print("Total files scanned:", len(scanned_files))
 
         elif choice == 2:
             print("Exiting SecureDrive Scanner.")
