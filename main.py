@@ -1,5 +1,6 @@
 import os
 import sys
+from scanner import scan_folder
 
 
 # Display the main menu
@@ -31,17 +32,22 @@ def get_scan_path():
     return None
 
 
-# Scan all files inside the selected folder and its subfolders
-def scan_folder(scan_path):
-    scanned_files = []
+# Display the scan results
+def show_results(scanned_files, findings):
+    print("\nScan completed.")
+    print("Total files scanned:", len(scanned_files))
+    print("Total findings:", len(findings))
 
-    for root, folders, files in os.walk(scan_path):
-        for file_name in files:
-            file_path = os.path.join(root, file_name)
-            scanned_files.append(file_path)
-            print("File found:", file_path)
+    if len(findings) == 0:
+        print("No risky file types were found.")
+    else:
+        print("\nRisky files found:")
 
-    return scanned_files
+        for finding in findings:
+            print("\nFile:", finding.file_path)
+            print("Finding:", finding.finding_type)
+            print("Reason:", finding.reason)
+            print("Risk points:", finding.risk_points)
 
 
 def main():
@@ -53,11 +59,10 @@ def main():
             scan_path = get_scan_path()
 
             if scan_path is not None:
-                print("\nScanning files...\n")
-                scanned_files = scan_folder(scan_path)
+                print("\nScanning files...")
 
-                print("\nScan completed.")
-                print("Total files scanned:", len(scanned_files))
+                scanned_files, findings = scan_folder(scan_path)
+                show_results(scanned_files, findings)
 
         elif choice == 2:
             print("Exiting SecureDrive Scanner.")
