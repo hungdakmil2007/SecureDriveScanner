@@ -33,10 +33,17 @@ def get_scan_path():
 
 
 # Display the scan results
-def show_results(scanned_files, findings, risk_score, risk_level):
+def show_results(
+    scanned_files,
+    findings,
+    skipped_items,
+    risk_score,
+    risk_level
+):
     print("\nScan completed.")
     print("Total files scanned:", len(scanned_files))
     print("Total findings:", len(findings))
+    print("Skipped items:", len(skipped_items))
     print("Risk score:", risk_score)
     print("Risk level:", risk_level)
 
@@ -51,6 +58,12 @@ def show_results(scanned_files, findings, risk_score, risk_level):
             print("Reason:", finding.reason)
             print("Risk points:", finding.risk_points)
 
+    if len(skipped_items) > 0:
+        print("\nSkipped items:")
+
+        for item in skipped_items:
+            print("-", item)
+
 
 def main():
     while True:
@@ -63,7 +76,7 @@ def main():
             if scan_path is not None:
                 print("\nScanning files...")
 
-                scanned_files, findings = scan_folder(scan_path)
+                scanned_files, findings, skipped_items = scan_folder(scan_path)
 
                 risk_score = calculate_risk_score(findings)
                 risk_level = get_risk_level(risk_score)
@@ -71,6 +84,7 @@ def main():
                 show_results(
                     scanned_files,
                     findings,
+                    skipped_items,
                     risk_score,
                     risk_level
                 )

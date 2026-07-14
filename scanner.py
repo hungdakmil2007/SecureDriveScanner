@@ -120,33 +120,62 @@ def check_macro_file(file_path):
 def scan_folder(scan_path):
     scanned_files = []
     findings = []
+    skipped_items = []
 
-    for root, folders, files in os.walk(scan_path):
+    # Save folder errors instead of stopping the program
+    def handle_scan_error(error):
+        skipped_path = error.filename
+
+        if skipped_path is None:
+            skipped_path = "Unknown path"
+
+        skipped_items.append(
+            skipped_path + " | " + str(error)
+        )
+
+    for root, folders, files in os.walk(
+        scan_path,
+        onerror=handle_scan_error
+    ):
         for file_name in files:
             file_path = os.path.join(root, file_name)
-            scanned_files.append(file_path)
 
-            risky_finding = check_risky_extension(file_path)
+            try:
+                # Skip paths that are not regular files
+                if not os.path.isfile(file_path):
+                    skipped_items.append(
+                        file_path + " | Not a regular file"
+                    )
+                    continue
 
-            if risky_finding is not None:
-                findings.append(risky_finding)
+                scanned_files.append(file_path)
 
-            double_extension_finding = check_double_extension(file_path)
+                risky_finding = check_risky_extension(file_path)
 
-            if double_extension_finding is not None:
-                findings.append(double_extension_finding)
+                if risky_finding is not None:
+                    findings.append(risky_finding)
 
-            autorun_finding = check_autorun_file(file_path)
+                double_extension_finding = check_double_extension(file_path)
 
-            if autorun_finding is not None:
-                findings.append(autorun_finding)
+                if double_extension_finding is not None:
+                    findings.append(double_extension_finding)
 
-            macro_finding = check_macro_file(file_path)
+                autorun_finding = check_autorun_file(file_path)
 
-            if macro_finding is not None:
-                findings.append(macro_finding)
+                if autorun_finding is not None:
+                    findings.append(autorun_finding)
 
-    return scanned_files, findings
+                macro_finding = check_macro_file(file_path)
+
+                if macro_finding is not None:
+                    findings.append(macro_finding)
+
+            except OSError as error:
+                skipped_items.append(
+                    file_path + " | " + str(error)
+                )
+
+    return scanned_files, findings, skipped_items
 
 # Calculate the total risk score from all findings
 def calculate_risk_score(findings):
