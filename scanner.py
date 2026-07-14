@@ -16,6 +16,22 @@ RISKY_EXTENSIONS = {
     ".url": "Internet shortcut"
 }
 
+# Common file types that may be used to disguise a risky file
+DISGUISED_EXTENSIONS = {
+    ".pdf",
+    ".txt",
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".gif",
+    ".doc",
+    ".docx",
+    ".xls",
+    ".xlsx",
+    ".ppt",
+    ".pptx"
+}
+
 
 # Check if a file has a risky extension
 def check_risky_extension(file_path):
@@ -35,6 +51,29 @@ def check_risky_extension(file_path):
 
     return None
 
+# Check for a risky file hidden behind another extension
+def check_double_extension(file_path):
+    file_name = os.path.basename(file_path).lower()
+
+    name_without_last_extension, last_extension = os.path.splitext(file_name)
+    second_extension = os.path.splitext(name_without_last_extension)[1]
+
+    if (
+        last_extension in RISKY_EXTENSIONS
+        and second_extension in DISGUISED_EXTENSIONS
+    ):
+        reason = "Risky file hidden behind " + second_extension
+
+        finding = Finding(
+            file_path,
+            "Double extension",
+            reason,
+            25
+        )
+
+        return finding
+
+    return None
 
 # Scan all files inside the selected folder and subfolders
 def scan_folder(scan_path):
@@ -46,9 +85,14 @@ def scan_folder(scan_path):
             file_path = os.path.join(root, file_name)
             scanned_files.append(file_path)
 
-            finding = check_risky_extension(file_path)
+            risky_finding = check_risky_extension(file_path)
 
-            if finding is not None:
-                findings.append(finding)
+            if risky_finding is not None:
+                findings.append(risky_finding)
+
+            double_extension_finding = check_double_extension(file_path)
+
+            if double_extension_finding is not None:
+                findings.append(double_extension_finding)
 
     return scanned_files, findings
