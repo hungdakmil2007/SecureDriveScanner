@@ -32,6 +32,13 @@ DISGUISED_EXTENSIONS = {
     ".pptx"
 }
 
+# Office file types that can contain macros
+MACRO_EXTENSIONS = {
+    ".docm": "Macro-enabled Word document",
+    ".xlsm": "Macro-enabled Excel workbook",
+    ".pptm": "Macro-enabled PowerPoint presentation"
+}
+
 
 # Check if a file has a risky extension
 def check_risky_extension(file_path):
@@ -75,6 +82,40 @@ def check_double_extension(file_path):
 
     return None
 
+# Check if the file is autorun.inf
+def check_autorun_file(file_path):
+    file_name = os.path.basename(file_path).lower()
+
+    if file_name == "autorun.inf":
+        finding = Finding(
+            file_path,
+            "Autorun file",
+            "Autorun file found on removable storage",
+            30
+        )
+
+        return finding
+
+    return None
+
+# Check if an Office file can contain macros
+def check_macro_file(file_path):
+    extension = os.path.splitext(file_path)[1].lower()
+
+    if extension in MACRO_EXTENSIONS:
+        reason = MACRO_EXTENSIONS[extension]
+
+        finding = Finding(
+            file_path,
+            "Macro-enabled Office file",
+            reason,
+            15
+        )
+
+        return finding
+
+    return None
+
 # Scan all files inside the selected folder and subfolders
 def scan_folder(scan_path):
     scanned_files = []
@@ -94,5 +135,15 @@ def scan_folder(scan_path):
 
             if double_extension_finding is not None:
                 findings.append(double_extension_finding)
+
+            autorun_finding = check_autorun_file(file_path)
+
+            if autorun_finding is not None:
+                findings.append(autorun_finding)
+
+            macro_finding = check_macro_file(file_path)
+
+            if macro_finding is not None:
+                findings.append(macro_finding)
 
     return scanned_files, findings
