@@ -1,5 +1,6 @@
 import os
 import sys
+from report import generate_report
 from scanner import scan_folder, calculate_risk_score, get_risk_level
 
 
@@ -88,6 +89,16 @@ def main():
                     risk_score,
                     risk_level
                 )
+
+                report_path = generate_report(
+                    scan_path,
+                    scanned_files,
+                    findings,
+                    skipped_items,
+                    risk_score,
+                    risk_level
+                )
+                print("\nText report saved to:", report_path)
 
         elif choice == 2:
             print("Exiting SecureDrive Scanner.")
