@@ -21,16 +21,22 @@ def get_menu_choice():
         return 0
 
 
-# Ask the user for a path and check if it exists
+# Ask the user for a folder path and check if it is valid
 def get_scan_path():
     scan_path = input("Enter USB or folder path: ").strip()
 
-    if os.path.exists(scan_path):
-        print("Path found:", scan_path)
-        return scan_path
+    if not os.path.exists(scan_path):
+        print("The path does not exist.")
+        return None
 
-    print("Invalid path.")
-    return None
+    if not os.path.isdir(scan_path):
+        print("The path must be a USB drive or folder.")
+        return None
+
+    scan_path = os.path.abspath(scan_path)
+
+    print("Path found:", scan_path)
+    return scan_path
 
 
 # Display the scan results
