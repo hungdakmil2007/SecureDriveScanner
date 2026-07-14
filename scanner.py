@@ -147,3 +147,25 @@ def scan_folder(scan_path):
                 findings.append(macro_finding)
 
     return scanned_files, findings
+
+# Calculate the total risk score from all findings
+def calculate_risk_score(findings):
+    total_score = 0
+
+    for finding in findings:
+        total_score += finding.risk_points
+
+    # Keep the displayed score between 0 and 100
+    return min(total_score, 100)
+
+
+# Convert the risk score into a risk level
+def get_risk_level(risk_score):
+    if risk_score == 0:
+        return "No findings"
+    elif risk_score < 40:
+        return "Low"
+    elif risk_score < 70:
+        return "Medium"
+    else:
+        return "High"

@@ -1,6 +1,6 @@
 import os
 import sys
-from scanner import scan_folder
+from scanner import scan_folder, calculate_risk_score, get_risk_level
 
 
 # Display the main menu
@@ -33,13 +33,15 @@ def get_scan_path():
 
 
 # Display the scan results
-def show_results(scanned_files, findings):
+def show_results(scanned_files, findings, risk_score, risk_level):
     print("\nScan completed.")
     print("Total files scanned:", len(scanned_files))
     print("Total findings:", len(findings))
+    print("Risk score:", risk_score)
+    print("Risk level:", risk_level)
 
     if len(findings) == 0:
-        print("No risky file types were found.")
+        print("No risky file indicators were found.")
     else:
         print("\nRisky files found:")
 
@@ -62,7 +64,16 @@ def main():
                 print("\nScanning files...")
 
                 scanned_files, findings = scan_folder(scan_path)
-                show_results(scanned_files, findings)
+
+                risk_score = calculate_risk_score(findings)
+                risk_level = get_risk_level(risk_score)
+
+                show_results(
+                    scanned_files,
+                    findings,
+                    risk_score,
+                    risk_level
+                )
 
         elif choice == 2:
             print("Exiting SecureDrive Scanner.")
