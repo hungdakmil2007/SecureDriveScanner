@@ -25,6 +25,9 @@ def get_recommendation(finding_type):
     elif finding_type == "Possible phone number":
         return "Review whether this phone number should be stored or shared."
 
+    elif finding_type == "Possible password value":
+        return "Remove plain-text passwords and store them securely."
+
     return "Review this file before opening it."
 
 # Course requirement - Function and File handling:

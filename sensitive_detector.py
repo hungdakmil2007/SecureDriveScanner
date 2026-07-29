@@ -31,6 +31,12 @@ PHONE_PATTERN = (
     r"(?!\d)"
 )
 
+# Pattern for possible password values
+PASSWORD_PATTERN = (
+    r"(?i)\b(?:password|passwd|pwd|passcode)\b"
+    r"\s*[:=]\s*[\"']?([^\s\"',;]+)"
+)
+
 # Check whether the file is a supported text-based file
 def is_supported_text_file(file_path):
     extension = os.path.splitext(file_path)[1].lower()
@@ -57,6 +63,10 @@ def mask_phone(phone):
         return "[MASKED]"
 
     return "***-***-" + digits[-4:]
+
+# Hide the complete password before storing it
+def mask_password(password):
+    return "[MASKED]"
 
 
 # Read one text file and check each line for possible email addresses
@@ -101,6 +111,23 @@ def scan_text_file(file_path):
                         5,
                         line_number,
                         masked_phone
+                    )
+
+                    findings.append(finding)
+
+                # Check the same line for possible password values
+                password_matches = re.findall(PASSWORD_PATTERN, line)
+
+                for password in password_matches:
+                    masked_password = mask_password(password)
+
+                    finding = Finding(
+                        file_path,
+                        "Possible password value",
+                        "Password-related value found in a text file",
+                        20,
+                        line_number,
+                        masked_password
                     )
 
                     findings.append(finding)

@@ -1,8 +1,15 @@
+#Author: Nguyen Hung Tran
+#Final project - ITSC203
+
+# Course requirement - OS module:
 import os
 from finding import Finding
+from sensitive_detector import scan_text_file
 
 
-# Risky file types that the scanner will check
+
+# Data structure - Dictionary:
+#risky file types that the scanner will check
 RISKY_EXTENSIONS = {
     ".exe": "Executable file",
     ".bat": "Batch script",
@@ -16,7 +23,8 @@ RISKY_EXTENSIONS = {
     ".url": "Internet shortcut"
 }
 
-# Common file types that may be used to disguise a risky file
+# Data structure - Set:
+#common file types that may be used to disguise a risky file
 DISGUISED_EXTENSIONS = {
     ".pdf",
     ".txt",
@@ -32,7 +40,8 @@ DISGUISED_EXTENSIONS = {
     ".pptx"
 }
 
-# Office file types that can contain macros
+# Data structure - Dictionary:
+#office file types that can contain macros
 MACRO_EXTENSIONS = {
     ".docm": "Macro-enabled Word document",
     ".xlsm": "Macro-enabled Excel workbook",
@@ -40,7 +49,8 @@ MACRO_EXTENSIONS = {
 }
 
 
-# Check if a file has a risky extension
+# Course requirement - Function:
+#check if a file has a risky extension
 def check_risky_extension(file_path):
     extension = os.path.splitext(file_path)[1].lower()
 
@@ -58,7 +68,8 @@ def check_risky_extension(file_path):
 
     return None
 
-# Check for a risky file hidden behind another extension
+# Course requirement - Function:
+#check for a risky file hidden behind another extension
 def check_double_extension(file_path):
     file_name = os.path.basename(file_path).lower()
 
@@ -82,10 +93,13 @@ def check_double_extension(file_path):
 
     return None
 
-# Check if the file is autorun.inf
+# Course requirement - Function:
+#check if the file is autorun.inf
 def check_autorun_file(file_path):
     file_name = os.path.basename(file_path).lower()
 
+    # Course requirement - Class:
+    #create a Finding object to store the result
     if file_name == "autorun.inf":
         finding = Finding(
             file_path,
@@ -98,13 +112,14 @@ def check_autorun_file(file_path):
 
     return None
 
-# Check if an Office file can contain macros
+# Course requirement - Function:
+#check if an Office file can contain macros
 def check_macro_file(file_path):
     extension = os.path.splitext(file_path)[1].lower()
 
     if extension in MACRO_EXTENSIONS:
         reason = MACRO_EXTENSIONS[extension]
-
+        
         finding = Finding(
             file_path,
             "Macro-enabled Office file",
@@ -116,13 +131,15 @@ def check_macro_file(file_path):
 
     return None
 
-# Scan all files inside the selected folder and subfolders
+# Course requirement - Function, Lists, and OS module:
+#scan all files inside the selected folder and subfolders
 def scan_folder(scan_path):
+    # Data structure - Lists:
     scanned_files = []
     findings = []
     skipped_items = []
 
-    # Save folder errors instead of stopping the program
+    #save folder errors instead of stopping the program
     def handle_scan_error(error):
         skipped_path = error.filename
 
@@ -132,26 +149,28 @@ def scan_folder(scan_path):
         skipped_items.append(
             skipped_path + " | " + str(error)
         )
-
+    # Course requirement - OS module:
     for root, folders, files in os.walk(
         scan_path,
         onerror=handle_scan_error
     ):
+        #build a full file path that works on windows and linux
         for file_name in files:
             file_path = os.path.join(root, file_name)
 
             try:
-                # Skip paths that are not regular files
+                #skip paths that are not regular files
                 if not os.path.isfile(file_path):
                     skipped_items.append(
                         file_path + " | Not a regular file"
                     )
                     continue
-
+                
+                #add the file path to the scanned_files list
                 scanned_files.append(file_path)
 
                 risky_finding = check_risky_extension(file_path)
-
+                #add each Finding object to the findings list
                 if risky_finding is not None:
                     findings.append(risky_finding)
 
@@ -169,7 +188,17 @@ def scan_folder(scan_path):
 
                 if macro_finding is not None:
                     findings.append(macro_finding)
-
+            
+                # Phase 3:
+                # Scan supported text files for possible sensitive information
+                sensitive_findings, sensitive_error = scan_text_file(file_path)
+            
+                if sensitive_error is not None:
+                    skipped_items.append(
+                        file_path + " | " + sensitive_error
+                    )
+                else:
+                    findings.extend(sensitive_findings)
             except OSError as error:
                 skipped_items.append(
                     file_path + " | " + str(error)
@@ -177,18 +206,19 @@ def scan_folder(scan_path):
 
     return scanned_files, findings, skipped_items
 
-# Calculate the total risk score from all findings
+# Course requirement - Function and Loop:
+#calculate the total risk score from all findings
 def calculate_risk_score(findings):
     total_score = 0
 
     for finding in findings:
         total_score += finding.risk_points
 
-    # Keep the displayed score between 0 and 100
+    #keep the displayed score between 0 and 100
     return min(total_score, 100)
 
-
-# Convert the risk score into a risk level
+# Course requirement - Function:
+#convert the risk score into a risk level
 def get_risk_level(risk_score):
     if risk_score == 0:
         return "No findings"
