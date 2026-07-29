@@ -22,6 +22,9 @@ def get_recommendation(finding_type):
     elif finding_type == "Possible email address":
         return "Review whether this email address should be stored or shared."
 
+    elif finding_type == "Possible phone number":
+        return "Review whether this phone number should be stored or shared."
+
     return "Review this file before opening it."
 
 # Course requirement - Function and File handling:
