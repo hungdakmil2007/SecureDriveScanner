@@ -1,8 +1,11 @@
+#Author: Nguyen Hung Tran
+#Final project - ITSC203
+
 import os
 from datetime import datetime
 
-
-# Give a recommendation based on the finding type
+# Course requirement - Function:
+#give a recommendation based on the finding type
 def get_recommendation(finding_type):
     if finding_type == "Risky file type":
         return "Do not open this file unless the source is trusted."
@@ -16,10 +19,13 @@ def get_recommendation(finding_type):
     elif finding_type == "Macro-enabled Office file":
         return "Do not enable macros unless the document is trusted."
 
+    elif finding_type == "Possible email address":
+        return "Review whether this email address should be stored or shared."
+
     return "Review this file before opening it."
 
-
-# Create and save the text report
+# Course requirement - Function and File handling:
+#create and save the text report
 def generate_report(
     scan_path,
     scanned_files,
@@ -29,8 +35,8 @@ def generate_report(
     risk_level
 ):
     report_folder = "reports"
-
-    # Create the reports folder if it does not exist
+    # Course requirement - OS module:
+    #create the reports folder if it does not exist
     if not os.path.exists(report_folder):
         os.makedirs(report_folder)
 
@@ -38,9 +44,10 @@ def generate_report(
     file_time = current_time.strftime("%Y%m%d_%H%M%S")
 
     report_name = "scan_report_" + file_time + ".txt"
+    #use os.path.join() so the path works on Windows and Linux
     report_path = os.path.join(report_folder, report_name)
 
-    # File handling requirement: save the scan results
+    # File handling requirement: save the scan result in a text file
     with open(report_path, "w", encoding="utf-8") as report:
         report.write("SecureDrive Scanner Report\n")
         report.write("==========================\n\n")
@@ -51,7 +58,7 @@ def generate_report(
             + current_time.strftime("%Y-%m-%d %H:%M:%S")
             + "\n"
         )
-
+        # Course requirement - Casting, int to string
         report.write(
             "Total files scanned: "
             + str(len(scanned_files))
@@ -63,7 +70,6 @@ def generate_report(
             + str(len(findings))
             + "\n"
         )
-
         report.write(
             "Skipped items: "
             + str(len(skipped_items))
@@ -106,6 +112,22 @@ def generate_report(
                     + finding.reason
                     + "\n"
                 )
+
+                # Phase 3:
+                # Save the line number and masked evidence when available
+                if finding.line_number is not None:
+                    report.write(
+                        "Line number: "
+                        + str(finding.line_number)
+                        + "\n"
+                    )
+
+                if finding.evidence is not None:
+                    report.write(
+                        "Masked evidence: "
+                        + finding.evidence
+                        + "\n"
+                    )
 
                 report.write(
                     "Risk points: "
