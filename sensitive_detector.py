@@ -63,6 +63,13 @@ SIN_PATTERN = (
     r"(?!\d)"
 )
 
+# Pattern for possible credit-card-like numbers
+CARD_PATTERN = (
+    r"(?<!\d)"
+    r"(?:\d[ -]?){12,18}\d"
+    r"(?!\d)"
+)
+
 # Check whether the file is a supported text-based file
 def is_supported_text_file(file_path):
     extension = os.path.splitext(file_path)[1].lower()
@@ -109,6 +116,38 @@ def mask_sin(sin_number):
         return "[MASKED]"
 
     return "***-***-" + digits[-3:]
+
+# Check whether a card-like number passes the Luhn algorithm
+def is_luhn_valid(card_number):
+    digits = re.sub(r"\D", "", card_number)
+
+    if len(digits) < 13 or len(digits) > 19:
+        return False
+
+    total = 0
+    reverse_digits = digits[::-1]
+
+    for index, digit in enumerate(reverse_digits):
+        number = int(digit)
+
+        if index % 2 == 1:
+            number *= 2
+
+            if number > 9:
+                number -= 9
+
+        total += number
+
+    return total % 10 == 0
+
+# Hide all card digits except the last four
+def mask_card(card_number):
+    digits = re.sub(r"\D", "", card_number)
+
+    if len(digits) < 4:
+        return "[MASKED]"
+
+    return "**** **** **** " + digits[-4:]
 
 # Read one text file and check each line for possible email addresses
 def scan_text_file(file_path):
@@ -237,6 +276,24 @@ def scan_text_file(file_path):
                     )
 
                     findings.append(finding)
+
+                # Check the same line for possible credit-card-like numbers
+                card_matches = re.findall(CARD_PATTERN, line)
+
+                for card_number in card_matches:
+                    if is_luhn_valid(card_number):
+                        masked_card = mask_card(card_number)
+
+                        finding = Finding(
+                            file_path,
+                            "Possible credit-card-like number",
+                            "Card-like number passed the Luhn check",
+                            30,
+                            line_number,
+                            masked_card
+                        )
+
+                        findings.append(finding)
     except (OSError, UnicodeDecodeError) as error:
         return findings, str(error)
 

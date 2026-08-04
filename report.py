@@ -39,6 +39,9 @@ def get_recommendation(finding_type):
 
     elif finding_type == "Possible SIN-like number":
         return "Review and remove this personal number before sharing the file."
+
+    elif finding_type == "Possible credit-card-like number":
+        return "Review and remove this payment information before sharing the file."
     return "Review this file before opening it."
 
 # Course requirement - Function and File handling:
