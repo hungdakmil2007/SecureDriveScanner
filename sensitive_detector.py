@@ -37,6 +37,12 @@ PASSWORD_PATTERN = (
     r"\s*[:=]\s*[\"']?([^\s\"',;]+)"
 )
 
+# Pattern for possible API key values
+API_KEY_PATTERN = (
+    r"(?i)\b(?:api[_-]?key|apikey|access[_-]?key|secret[_-]?key)\b"
+    r"\s*[:=]\s*[\"']?([A-Za-z0-9_\-./+=]{8,})"
+)
+
 # Check whether the file is a supported text-based file
 def is_supported_text_file(file_path):
     extension = os.path.splitext(file_path)[1].lower()
@@ -68,6 +74,12 @@ def mask_phone(phone):
 def mask_password(password):
     return "[MASKED]"
 
+# Hide most of a secret value before storing it
+def mask_secret(secret):
+    if len(secret) <= 6:
+        return "[MASKED]"
+
+    return secret[:3] + "***" + secret[-3:]
 
 # Read one text file and check each line for possible email addresses
 def scan_text_file(file_path):
@@ -128,6 +140,23 @@ def scan_text_file(file_path):
                         20,
                         line_number,
                         masked_password
+                    )
+
+                    findings.append(finding)
+
+                # Check the same line for possible API key values
+                api_key_matches = re.findall(API_KEY_PATTERN, line)
+
+                for api_key in api_key_matches:
+                    masked_api_key = mask_secret(api_key)
+
+                    finding = Finding(
+                        file_path,
+                        "Possible API key",
+                        "API key pattern found in a text file",
+                        25,
+                        line_number,
+                        masked_api_key
                     )
 
                     findings.append(finding)

@@ -28,6 +28,9 @@ def get_recommendation(finding_type):
     elif finding_type == "Possible password value":
         return "Remove plain-text passwords and store them securely."
 
+    elif finding_type == "Possible API key":
+        return "Remove the API key and store it in an environment variable."
+
     return "Review this file before opening it."
 
 # Course requirement - Function and File handling:
