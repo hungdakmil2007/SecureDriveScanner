@@ -36,6 +36,9 @@ def get_recommendation(finding_type):
 
     elif finding_type == "Possible private key":
         return "Remove the private key and store it in a secure location."
+
+    elif finding_type == "Possible SIN-like number":
+        return "Review and remove this personal number before sharing the file."
     return "Review this file before opening it."
 
 # Course requirement - Function and File handling:

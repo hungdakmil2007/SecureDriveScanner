@@ -56,6 +56,13 @@ PRIVATE_KEY_PATTERN = (
     r"PRIVATE KEY-----"
 )
 
+# Pattern for possible Canadian SIN-like numbers
+SIN_PATTERN = (
+    r"(?<!\d)"
+    r"\d{3}[- ]\d{3}[- ]\d{3}"
+    r"(?!\d)"
+)
+
 # Check whether the file is a supported text-based file
 def is_supported_text_file(file_path):
     extension = os.path.splitext(file_path)[1].lower()
@@ -93,6 +100,15 @@ def mask_secret(secret):
         return "[MASKED]"
 
     return secret[:3] + "***" + secret[-3:]
+
+# Hide most digits of a SIN-like number
+def mask_sin(sin_number):
+    digits = re.sub(r"\D", "", sin_number)
+
+    if len(digits) != 9:
+        return "[MASKED]"
+
+    return "***-***-" + digits[-3:]
 
 # Read one text file and check each line for possible email addresses
 def scan_text_file(file_path):
@@ -205,6 +221,22 @@ def scan_text_file(file_path):
 
                     findings.append(finding)
 
+                # Check the same line for possible SIN-like numbers
+                sin_matches = re.findall(SIN_PATTERN, line)
+
+                for sin_number in sin_matches:
+                    masked_sin = mask_sin(sin_number)
+
+                    finding = Finding(
+                        file_path,
+                        "Possible SIN-like number",
+                        "SIN-like number pattern found in a text file",
+                        25,
+                        line_number,
+                        masked_sin
+                    )
+
+                    findings.append(finding)
     except (OSError, UnicodeDecodeError) as error:
         return findings, str(error)
 
