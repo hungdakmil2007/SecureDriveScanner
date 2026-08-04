@@ -31,6 +31,8 @@ def get_recommendation(finding_type):
     elif finding_type == "Possible API key":
         return "Remove the API key and store it in an environment variable."
 
+    elif finding_type == "Possible token":
+        return "Remove the token and store it in a secure location."
     return "Review this file before opening it."
 
 # Course requirement - Function and File handling:

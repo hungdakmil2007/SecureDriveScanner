@@ -43,6 +43,12 @@ API_KEY_PATTERN = (
     r"\s*[:=]\s*[\"']?([A-Za-z0-9_\-./+=]{8,})"
 )
 
+# Pattern for possible token values
+TOKEN_PATTERN = (
+    r"(?i)\b(?:bearer[_-]?token|access[_-]?token|auth[_-]?token|token)\b"
+    r"\s*[:=]\s*[\"']?([A-Za-z0-9_\-./+=]{8,})"
+)
+
 # Check whether the file is a supported text-based file
 def is_supported_text_file(file_path):
     extension = os.path.splitext(file_path)[1].lower()
@@ -157,6 +163,23 @@ def scan_text_file(file_path):
                         25,
                         line_number,
                         masked_api_key
+                    )
+
+                    findings.append(finding)
+
+                # Check the same line for possible token values
+                token_matches = re.findall(TOKEN_PATTERN, line)
+
+                for token in token_matches:
+                    masked_token = mask_secret(token)
+
+                    finding = Finding(
+                        file_path,
+                        "Possible token",
+                        "Token pattern found in a text file",
+                        25,
+                        line_number,
+                        masked_token
                     )
 
                     findings.append(finding)
