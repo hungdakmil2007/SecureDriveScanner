@@ -49,6 +49,13 @@ TOKEN_PATTERN = (
     r"\s*[:=]\s*[\"']?([A-Za-z0-9_\-./+=]{8,})"
 )
 
+# Pattern for common private key headers
+PRIVATE_KEY_PATTERN = (
+    r"(?i)-----BEGIN "
+    r"(?:RSA |EC |DSA |OPENSSH )?"
+    r"PRIVATE KEY-----"
+)
+
 # Check whether the file is a supported text-based file
 def is_supported_text_file(file_path):
     extension = os.path.splitext(file_path)[1].lower()
@@ -180,6 +187,20 @@ def scan_text_file(file_path):
                         25,
                         line_number,
                         masked_token
+                    )
+
+                    findings.append(finding)
+                # Check the same line for a private key indicator
+                private_key_match = re.search(PRIVATE_KEY_PATTERN, line)
+
+                if private_key_match is not None:
+                    finding = Finding(
+                        file_path,
+                        "Possible private key",
+                        "Private key header found in a text file",
+                        30,
+                        line_number,
+                        "[PRIVATE KEY HEADER DETECTED]"
                     )
 
                     findings.append(finding)
