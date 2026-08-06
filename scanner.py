@@ -5,7 +5,7 @@
 import os
 from finding import Finding
 from sensitive_detector import scan_text_file
-
+from hash_checker import calculate_sha256
 
 
 # Data structure - Dictionary:
@@ -138,6 +138,7 @@ def scan_folder(scan_path):
     scanned_files = []
     findings = []
     skipped_items = []
+    hash_results = []
 
     #save folder errors instead of stopping the program
     def handle_scan_error(error):
@@ -169,26 +170,50 @@ def scan_folder(scan_path):
                 #add the file path to the scanned_files list
                 scanned_files.append(file_path)
 
+                #track whether this file should be hashed
+                is_suspicious = False
+
                 risky_finding = check_risky_extension(file_path)
                 #add each Finding object to the findings list
                 if risky_finding is not None:
                     findings.append(risky_finding)
+                    is_suspicious = True
 
                 double_extension_finding = check_double_extension(file_path)
 
                 if double_extension_finding is not None:
                     findings.append(double_extension_finding)
+                    is_suspicious = True
 
                 autorun_finding = check_autorun_file(file_path)
 
                 if autorun_finding is not None:
                     findings.append(autorun_finding)
+                    is_suspicious = True
 
                 macro_finding = check_macro_file(file_path)
 
                 if macro_finding is not None:
                     findings.append(macro_finding)
-            
+                    is_suspicious = True
+
+                # Phase 3:
+                # Calculate SHA256 only for suspicious files
+                if is_suspicious:
+                    file_hash, hash_error = calculate_sha256(file_path)
+
+                    if hash_error is not None:
+                        skipped_items.append(
+                            file_path + " | Hash error: " + hash_error
+                        )
+                    else:
+                        hash_result = {
+                            "file_path": file_path,
+                            "sha256": file_hash
+                        }
+
+                        hash_results.append(hash_result)
+                    
                 # Phase 3:
                 # Scan supported text files for possible sensitive information
                 sensitive_findings, sensitive_error = scan_text_file(file_path)
@@ -204,7 +229,7 @@ def scan_folder(scan_path):
                     file_path + " | " + str(error)
                 )
 
-    return scanned_files, findings, skipped_items
+    return scanned_files, findings, skipped_items, hash_results
 
 # Course requirement - Function and Loop:
 #calculate the total risk score from all findings

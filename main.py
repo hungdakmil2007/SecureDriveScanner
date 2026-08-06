@@ -55,6 +55,7 @@ def show_results(
     scanned_files,
     findings,
     skipped_items,
+    hash_results,
     risk_score,
     risk_level
 ):
@@ -63,6 +64,7 @@ def show_results(
     print("Total files scanned:", len(scanned_files))
     print("Total findings:", len(findings))
     print("Skipped items:", len(skipped_items))
+    print("Files hashed:", len(hash_results))
     print("Risk score:", risk_score)
     print("Risk level:", risk_level)
 
@@ -90,6 +92,13 @@ def show_results(
         for item in skipped_items:
             print("-", item)
 
+    if len(hash_results) > 0:
+        print("\nSHA256 Hash Results:")
+
+        for hash_result in hash_results:
+            print("\nFile:", hash_result["file_path"])
+            print("SHA256:", hash_result["sha256"])
+
 #keep displaying the menu until the user choose exit
 def main():
     while True:
@@ -102,7 +111,7 @@ def main():
             if scan_path is not None:
                 print("\nScanning files...")
 
-                scanned_files, findings, skipped_items = scan_folder(scan_path)
+                scanned_files, findings, skipped_items, hash_results = scan_folder(scan_path)
 
                 risk_score = calculate_risk_score(findings)
                 risk_level = get_risk_level(risk_score)
@@ -111,6 +120,7 @@ def main():
                     scanned_files,
                     findings,
                     skipped_items,
+                    hash_results,
                     risk_score,
                     risk_level
                 )
