@@ -51,6 +51,7 @@ def generate_report(
     scanned_files,
     findings,
     skipped_items,
+    hash_results,
     risk_score,
     risk_level
 ):
@@ -93,6 +94,12 @@ def generate_report(
         report.write(
             "Skipped items: "
             + str(len(skipped_items))
+            + "\n"
+        )
+
+        report.write(
+            "Files hashed: "
+            + str(len(hash_results))
             + "\n"
         )
 
@@ -167,6 +174,38 @@ def generate_report(
 
                 finding_number += 1
 
+        # Phase 3:
+        # Save SHA256 results for suspicious files
+        report.write("\nSHA256 Hash Results\n")
+        report.write("-------------------\n")
+
+        if len(hash_results) == 0:
+            report.write("No suspicious files were hashed.\n")
+
+        else:
+            hash_number = 1
+
+            for hash_result in hash_results:
+                report.write(
+                    "\nHash Result "
+                    + str(hash_number)
+                    + "\n"
+                )
+
+                report.write(
+                    "File: "
+                    + hash_result["file_path"]
+                    + "\n"
+                )
+
+                report.write(
+                    "SHA256: "
+                    + hash_result["sha256"]
+                    + "\n"
+                )
+
+                hash_number += 1
+                
         report.write("\nSkipped Items\n")
         report.write("-------------\n")
 

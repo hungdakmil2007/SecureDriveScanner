@@ -130,6 +130,7 @@ def main():
                     scanned_files,
                     findings,
                     skipped_items,
+                    hash_results,
                     risk_score,
                     risk_level
                 )
