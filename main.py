@@ -9,6 +9,7 @@ import sys
 from report import generate_report
 from scanner import scan_folder, calculate_risk_score, get_risk_level
 from virustotal_lookup import lookup_hash_results
+from finding import Finding
 
 
 
@@ -136,6 +137,23 @@ def get_virustotal_choice():
         return 1
 
     return 2
+
+# Phase 3:
+# Create a security finding when VirusTotal reports malicious detections
+def add_virustotal_findings(hash_results, findings):
+    for hash_result in hash_results:
+        vt_status = hash_result.get("vt_status")
+        malicious = hash_result.get("vt_malicious", 0)
+
+        if vt_status == "Found" and malicious > 0:
+            finding = Finding(
+                hash_result["file_path"],
+                "VirusTotal malicious hash",
+                "The file hash received malicious detections from VirusTotal",
+                50
+            )
+
+            findings.append(finding)
 
 #keep displaying the menu until the user choose exit
 def main():

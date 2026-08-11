@@ -126,6 +126,20 @@ def generate_report(
             + "\n"
         )
 
+        vt_checked = 0
+
+        for hash_result in hash_results:
+            vt_status = hash_result.get("vt_status", "Not requested")
+
+            if vt_status == "Found" or vt_status == "Hash not found":
+                vt_checked += 1
+
+        report.write(
+            "VirusTotal results available: "
+            + str(vt_checked)
+            + "\n"
+        )
+
         report.write("Risk score: " + str(risk_score) + "\n")
         report.write("Risk level: " + risk_level + "\n")
 
@@ -247,7 +261,7 @@ def generate_report(
                 finding_number += 1    
 
         # Phase 3:
-        # Save SHA256 results for suspicious files
+        # Save SHA256 and optional VirusTotal results
         report.write("\nSHA256 Hash Results\n")
         report.write("-------------------\n")
 
@@ -276,8 +290,44 @@ def generate_report(
                     + "\n"
                 )
 
+                vt_status = hash_result.get(
+                    "vt_status",
+                    "Not requested"
+                )
+
+                vt_source = hash_result.get(
+                    "vt_source",
+                    "None"
+                )
+
+                report.write(
+                    "VirusTotal status: "
+                    + vt_status
+                    + "\n"
+                )
+
+                report.write(
+                    "VirusTotal source: "
+                    + vt_source
+                    + "\n"
+                )
+
+                # Only display detection numbers when VirusTotal found the hash
+                if vt_status == "Found":
+                    report.write(
+                        "Malicious detections: "
+                        + str(hash_result.get("vt_malicious", 0))
+                        + "\n"
+                    )
+
+                    report.write(
+                        "Suspicious detections: "
+                        + str(hash_result.get("vt_suspicious", 0))
+                        + "\n"
+                    )
+
                 hash_number += 1
-                
+            
         report.write("\nSkipped Items\n")
         report.write("-------------\n")
 
