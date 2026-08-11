@@ -70,14 +70,14 @@ CARD_PATTERN = (
     r"(?!\d)"
 )
 
-# Check whether the file is a supported text-based file
+#check whether the file is a supported text-based file
 def is_supported_text_file(file_path):
     extension = os.path.splitext(file_path)[1].lower()
 
     return extension in SUPPORTED_TEXT_EXTENSIONS
 
 
-# Hide part of an email before storing it in the report
+#hide part of an email before storing it in the report
 def mask_email(email):
     local_part, domain = email.split("@", 1)
 
@@ -88,7 +88,7 @@ def mask_email(email):
 
     return masked_local + "@" + domain
 
-# Hide most digits of a phone number before storing it
+#hide most digits of a phone number before storing it
 def mask_phone(phone):
     digits = re.sub(r"\D", "", phone)
 
@@ -97,11 +97,11 @@ def mask_phone(phone):
 
     return "***-***-" + digits[-4:]
 
-# Hide the complete password before storing it
+#hide the complete password before storing it
 def mask_password(password):
     return "[MASKED]"
 
-# Hide most of a secret value before storing it
+#hide most of a secret value before storing it
 def mask_secret(secret):
     if len(secret) <= 6:
         return "[MASKED]"
@@ -117,7 +117,7 @@ def mask_sin(sin_number):
 
     return "***-***-" + digits[-3:]
 
-# Check whether a card-like number passes the Luhn algorithm
+#check whether a card-like number passes the Luhn algorithm
 def is_luhn_valid(card_number):
     digits = re.sub(r"\D", "", card_number)
 
@@ -140,7 +140,7 @@ def is_luhn_valid(card_number):
 
     return total % 10 == 0
 
-# Hide all card digits except the last four
+#hide all card digits except the last four
 def mask_card(card_number):
     digits = re.sub(r"\D", "", card_number)
 
@@ -149,7 +149,7 @@ def mask_card(card_number):
 
     return "**** **** **** " + digits[-4:]
 
-# Read one text file and check each line for possible email addresses
+#read one text file and check each line for possible email addresses
 def scan_text_file(file_path):
     findings = []
 
@@ -178,7 +178,7 @@ def scan_text_file(file_path):
 
                     findings.append(finding)
 
-                # Check the same line for possible phone numbers
+                #check the same line for possible phone numbers
                 phone_matches = re.findall(PHONE_PATTERN, line)
 
                 for phone in phone_matches:
@@ -195,7 +195,7 @@ def scan_text_file(file_path):
 
                     findings.append(finding)
 
-                # Check the same line for possible password values
+                #check the same line for possible password values
                 password_matches = re.findall(PASSWORD_PATTERN, line)
 
                 for password in password_matches:
@@ -212,7 +212,7 @@ def scan_text_file(file_path):
 
                     findings.append(finding)
 
-                # Check the same line for possible API key values
+                #check the same line for possible API key values
                 api_key_matches = re.findall(API_KEY_PATTERN, line)
 
                 for api_key in api_key_matches:
@@ -229,7 +229,7 @@ def scan_text_file(file_path):
 
                     findings.append(finding)
 
-                # Check the same line for possible token values
+                #check the same line for possible token values
                 token_matches = re.findall(TOKEN_PATTERN, line)
 
                 for token in token_matches:
@@ -245,7 +245,7 @@ def scan_text_file(file_path):
                     )
 
                     findings.append(finding)
-                # Check the same line for a private key indicator
+                #check the same line for a private key indicator
                 private_key_match = re.search(PRIVATE_KEY_PATTERN, line)
 
                 if private_key_match is not None:
@@ -260,7 +260,7 @@ def scan_text_file(file_path):
 
                     findings.append(finding)
 
-                # Check the same line for possible SIN-like numbers
+                #check the same line for possible SIN-like numbers
                 sin_matches = re.findall(SIN_PATTERN, line)
 
                 for sin_number in sin_matches:
@@ -277,7 +277,7 @@ def scan_text_file(file_path):
 
                     findings.append(finding)
 
-                # Check the same line for possible credit-card-like numbers
+                #check the same line for possible credit-card-like numbers
                 card_matches = re.findall(CARD_PATTERN, line)
 
                 for card_number in card_matches:

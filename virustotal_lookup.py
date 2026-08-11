@@ -12,7 +12,7 @@ CACHE_FILE = "vt_cache.json"
 MAX_VT_LOOKUPS = 3
 
 
-# Load previous VirusTotal results from a local cache file
+#load previous Virustotal results from a local cache file
 def load_cache():
     if not os.path.exists(CACHE_FILE):
         return {}
@@ -26,7 +26,7 @@ def load_cache():
         return {}
 
 
-# Save VirusTotal results to the local cache file
+#save VirusTotal results to the local cache file
 def save_cache(cache):
     try:
         # Course requirement - File handling:
@@ -40,7 +40,7 @@ def save_cache(cache):
     except OSError:
         pass
 
-# Check whether a hash already has a cached VirusTotal result
+#check whether a hash already has a cached Virustotal result
 def get_cached_result(file_hash):
     cache = load_cache()
 
@@ -53,11 +53,11 @@ def get_cached_result(file_hash):
     return result
 
 # Look up a SHA256 hash using VirusTotal
-# Only the hash is sent, not the full file
+#only the hash is sent, not the full file
 def lookup_hash(file_hash):
     cache = load_cache()
 
-    # Use a previous result without making another API request
+    #use a previous result without making another API request
     if file_hash in cache:
         cached_result = cache[file_hash]
         cached_result["source"] = "Cache"
@@ -103,7 +103,7 @@ def lookup_hash(file_hash):
                 "source": "VirusTotal API"
             }
 
-            # Save successful lookup for future scans
+            #save successful lookup for future scans
             cache[file_hash] = result.copy()
             cache[file_hash].pop("source", None)
             save_cache(cache)
@@ -119,7 +119,7 @@ def lookup_hash(file_hash):
                 "source": "VirusTotal API"
             }
 
-            # Cache not-found hashes to avoid repeating requests
+            #cache not found hashes to avoid repeating requests
             cache[file_hash] = result.copy()
             cache[file_hash].pop("source", None)
             save_cache(cache)
@@ -158,7 +158,7 @@ def lookup_hash(file_hash):
         }
 
 # Check suspicious file hashes with VirusTotal
-# Cached results do not count toward the API request limit
+# Cached results don't count toward the API request limit
 def lookup_hash_results(hash_results):
     api_requests = 0
     stop_reason = None
@@ -166,7 +166,7 @@ def lookup_hash_results(hash_results):
     for hash_result in hash_results:
         file_hash = hash_result["sha256"]
 
-        # Always check the local cache first
+        #always check the local cache first
         cached_result = get_cached_result(file_hash)
 
         if cached_result is not None:
@@ -176,7 +176,7 @@ def lookup_hash_results(hash_results):
             hash_result["vt_source"] = cached_result["source"]
             continue
 
-        # Stop new API requests after a serious API problem
+        #stop new API requests after a serious API problem
         if stop_reason is not None:
             hash_result["vt_status"] = "Not checked - " + stop_reason
             hash_result["vt_malicious"] = 0
@@ -184,7 +184,7 @@ def lookup_hash_results(hash_results):
             hash_result["vt_source"] = "None"
             continue
 
-        # Limit new VirusTotal requests during this scan
+        #limit new Virustotal requests during this scan
         if api_requests >= MAX_VT_LOOKUPS:
             hash_result["vt_status"] = (
                 "Not checked - scan lookup limit reached"
@@ -196,7 +196,7 @@ def lookup_hash_results(hash_results):
 
         result = lookup_hash(file_hash)
 
-        # Count only a real API request
+        #count only a real API request
         if result["source"] == "VirusTotal API":
             api_requests += 1
 

@@ -3,4 +3,4 @@ __pycache__/
 .env
 reports/
 .vscode/
-*.json
+vt_cache.json

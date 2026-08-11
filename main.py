@@ -71,9 +71,9 @@ def show_results(
     print("Risk level:", risk_level)
 
     if len(findings) == 0:
-        print("No risky file indicators were found")
+        print("No findings were found")
     else:
-        print("\nRisky files found:")
+        print("\nFindings:")
 
         for finding in findings:
             print("\nFile:", finding.file_path)
@@ -122,7 +122,7 @@ def show_results(
                     hash_result.get("vt_suspicious", 0)
                 )
 
-# Ask whether the user wants to use the optional online hash lookup
+#ask whether the user wants to use the optional online hash lookup
 def get_virustotal_choice():
     print("\nOptional VirusTotal Lookup")
     print("1. Yes")
@@ -180,8 +180,14 @@ def main():
                             hash_results
                         )
 
+                        #create a high-risk finding if VirusTotal reports malware
+                        add_virustotal_findings(
+                            hash_results,
+                            findings
+                        )
+
                     else:
-                        # Mark hashes as local-only results
+                        #mark hashes as local-only results
                         for hash_result in hash_results:
                             hash_result["vt_status"] = "Not requested"
                             hash_result["vt_malicious"] = 0

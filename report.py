@@ -19,6 +19,9 @@ def get_recommendation(finding_type):
     elif finding_type == "Macro-enabled Office file":
         return "Do not enable macros unless the document is trusted."
 
+    elif finding_type == "VirusTotal malicious hash":
+        return "Do not open the file. Isolate it and scan it with trusted security software."
+
     elif finding_type == "Possible email address":
         return "Review whether this email address should be stored or shared."
 
@@ -312,7 +315,7 @@ def generate_report(
                     + "\n"
                 )
 
-                # Only display detection numbers when VirusTotal found the hash
+                #only display detection numbers when VirusTotal found the hash
                 if vt_status == "Found":
                     report.write(
                         "Malicious detections: "

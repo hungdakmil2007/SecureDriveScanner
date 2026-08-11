@@ -10,7 +10,7 @@ def calculate_sha256(file_path):
     try:
         sha256_hash = hashlib.sha256()
 
-        # Read the file in binary mode because any file type can be hashed
+        #read the file in binary mode because any file type can be hashed
         with open(file_path, "rb") as file:
             while True:
                 file_block = file.read(4096)
