@@ -56,6 +56,17 @@ def generate_report(
     risk_level
 ):
     report_folder = "reports"
+
+    # Phase 3:
+    # Separate risky file findings and sensitive data findings
+    risky_findings = []
+    sensitive_findings = []
+
+    for finding in findings:
+        if finding.line_number is not None:
+            sensitive_findings.append(finding)
+        else:
+            risky_findings.append(finding)
     # Course requirement - OS module:
     #create the reports folder if it does not exist
     if not os.path.exists(report_folder):
@@ -91,6 +102,18 @@ def generate_report(
             + str(len(findings))
             + "\n"
         )
+
+        report.write(
+            "Risky file findings: "
+            + str(len(risky_findings))
+            + "\n"
+        )
+
+        report.write(
+            "Sensitive data findings: "
+            + str(len(sensitive_findings))
+            + "\n"
+        )
         report.write(
             "Skipped items: "
             + str(len(skipped_items))
@@ -106,16 +129,17 @@ def generate_report(
         report.write("Risk score: " + str(risk_score) + "\n")
         report.write("Risk level: " + risk_level + "\n")
 
-        report.write("\nFindings\n")
-        report.write("--------\n")
+        # Phase 2 findings
+        report.write("\nRisky File Findings\n")
+        report.write("-------------------\n")
 
-        if len(findings) == 0:
+        if len(risky_findings) == 0:
             report.write("No risky file indicators were found.\n")
 
         else:
             finding_number = 1
 
-            for finding in findings:
+            for finding in risky_findings:
                 report.write(
                     "\nFinding "
                     + str(finding_number)
@@ -140,22 +164,6 @@ def generate_report(
                     + "\n"
                 )
 
-                # Phase 3:
-                # Save the line number and masked evidence when available
-                if finding.line_number is not None:
-                    report.write(
-                        "Line number: "
-                        + str(finding.line_number)
-                        + "\n"
-                    )
-
-                if finding.evidence is not None:
-                    report.write(
-                        "Masked evidence: "
-                        + finding.evidence
-                        + "\n"
-                    )
-
                 report.write(
                     "Risk points: "
                     + str(finding.risk_points)
@@ -173,6 +181,70 @@ def generate_report(
                 )
 
                 finding_number += 1
+        # Phase 3 sensitive data findings
+        report.write("\nPossible Sensitive Data Findings\n")
+        report.write("--------------------------------\n")
+
+        if len(sensitive_findings) == 0:
+            report.write("No possible sensitive information was found.\n")
+
+        else:
+            finding_number = 1
+
+            for finding in sensitive_findings:
+                report.write(
+                    "\nFinding "
+                    + str(finding_number)
+                    + "\n"
+                )
+
+                report.write(
+                    "File: "
+                    + finding.file_path
+                    + "\n"
+                )
+
+                report.write(
+                    "Type: "
+                    + finding.finding_type
+                    + "\n"
+                )
+
+                report.write(
+                    "Reason: "
+                    + finding.reason
+                    + "\n"
+                )
+
+                report.write(
+                    "Line number: "
+                    + str(finding.line_number)
+                    + "\n"
+                )
+
+                report.write(
+                    "Masked evidence: "
+                    + finding.evidence
+                    + "\n"
+                )
+
+                report.write(
+                    "Risk points: "
+                    + str(finding.risk_points)
+                    + "\n"
+                )
+
+                recommendation = get_recommendation(
+                    finding.finding_type
+                )
+
+                report.write(
+                    "Recommendation: "
+                    + recommendation
+                    + "\n"
+                )
+
+                finding_number += 1    
 
         # Phase 3:
         # Save SHA256 results for suspicious files
