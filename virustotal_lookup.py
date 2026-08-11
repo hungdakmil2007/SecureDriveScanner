@@ -8,6 +8,8 @@ import urllib.error
 
 
 CACHE_FILE = "vt_cache.json"
+# Limit new VirusTotal API requests during one scan
+MAX_VT_LOOKUPS = 3
 
 
 # Load previous VirusTotal results from a local cache file
@@ -38,6 +40,17 @@ def save_cache(cache):
     except OSError:
         pass
 
+# Check whether a hash already has a cached VirusTotal result
+def get_cached_result(file_hash):
+    cache = load_cache()
+
+    if file_hash not in cache:
+        return None
+
+    result = cache[file_hash].copy()
+    result["source"] = "Cache"
+
+    return result
 
 # Look up a SHA256 hash using VirusTotal
 # Only the hash is sent, not the full file
@@ -143,3 +156,65 @@ def lookup_hash(file_hash):
             "suspicious": 0,
             "source": "VirusTotal API"
         }
+
+# Check suspicious file hashes with VirusTotal
+# Cached results do not count toward the API request limit
+def lookup_hash_results(hash_results):
+    api_requests = 0
+    stop_api_requests = False
+
+    for hash_result in hash_results:
+        file_hash = hash_result["sha256"]
+
+        # Always check the local cache first
+        cached_result = get_cached_result(file_hash)
+
+        if cached_result is not None:
+            hash_result["vt_status"] = cached_result["status"]
+            hash_result["vt_malicious"] = cached_result["malicious"]
+            hash_result["vt_suspicious"] = cached_result["suspicious"]
+            hash_result["vt_source"] = cached_result["source"]
+            continue
+
+        # Stop new API requests if VirusTotal already returned a quota error
+        if stop_api_requests:
+            hash_result["vt_status"] = "Not checked - API quota exceeded"
+            hash_result["vt_malicious"] = 0
+            hash_result["vt_suspicious"] = 0
+            hash_result["vt_source"] = "None"
+            continue
+
+        # Limit new VirusTotal requests during this scan
+        if api_requests >= MAX_VT_LOOKUPS:
+            hash_result["vt_status"] = "Not checked - scan lookup limit reached"
+            hash_result["vt_malicious"] = 0
+            hash_result["vt_suspicious"] = 0
+            hash_result["vt_source"] = "None"
+            continue
+
+        result = lookup_hash(file_hash)
+
+        # Count only a real VirusTotal API request
+        if result["source"] == "VirusTotal API":
+            api_requests += 1
+
+        hash_result["vt_status"] = result["status"]
+        hash_result["vt_malicious"] = result["malicious"]
+        hash_result["vt_suspicious"] = result["suspicious"]
+        hash_result["vt_source"] = result["source"]
+
+        # If the quota is reached, do not make more API requests
+        if result["status"] == "API quota exceeded":
+            stop_api_requests = True
+
+        # These errors also make more requests useless for this scan
+        elif result["status"] == "Invalid API key":
+            stop_api_requests = True
+
+        elif result["status"] == "API key missing":
+            stop_api_requests = True
+
+        elif result["status"] == "Connection error":
+            stop_api_requests = True
+
+    return hash_results
