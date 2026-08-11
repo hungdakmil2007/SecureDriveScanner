@@ -161,7 +161,7 @@ def lookup_hash(file_hash):
 # Cached results do not count toward the API request limit
 def lookup_hash_results(hash_results):
     api_requests = 0
-    stop_api_requests = False
+    stop_reason = None
 
     for hash_result in hash_results:
         file_hash = hash_result["sha256"]
@@ -176,9 +176,9 @@ def lookup_hash_results(hash_results):
             hash_result["vt_source"] = cached_result["source"]
             continue
 
-        # Stop new API requests if VirusTotal already returned a quota error
-        if stop_api_requests:
-            hash_result["vt_status"] = "Not checked - API quota exceeded"
+        # Stop new API requests after a serious API problem
+        if stop_reason is not None:
+            hash_result["vt_status"] = "Not checked - " + stop_reason
             hash_result["vt_malicious"] = 0
             hash_result["vt_suspicious"] = 0
             hash_result["vt_source"] = "None"
@@ -186,7 +186,9 @@ def lookup_hash_results(hash_results):
 
         # Limit new VirusTotal requests during this scan
         if api_requests >= MAX_VT_LOOKUPS:
-            hash_result["vt_status"] = "Not checked - scan lookup limit reached"
+            hash_result["vt_status"] = (
+                "Not checked - scan lookup limit reached"
+            )
             hash_result["vt_malicious"] = 0
             hash_result["vt_suspicious"] = 0
             hash_result["vt_source"] = "None"
@@ -194,7 +196,7 @@ def lookup_hash_results(hash_results):
 
         result = lookup_hash(file_hash)
 
-        # Count only a real VirusTotal API request
+        # Count only a real API request
         if result["source"] == "VirusTotal API":
             api_requests += 1
 
@@ -203,18 +205,17 @@ def lookup_hash_results(hash_results):
         hash_result["vt_suspicious"] = result["suspicious"]
         hash_result["vt_source"] = result["source"]
 
-        # If the quota is reached, do not make more API requests
+        # Stop unnecessary requests after these errors
         if result["status"] == "API quota exceeded":
-            stop_api_requests = True
+            stop_reason = "API quota exceeded"
 
-        # These errors also make more requests useless for this scan
         elif result["status"] == "Invalid API key":
-            stop_api_requests = True
+            stop_reason = "invalid API key"
 
         elif result["status"] == "API key missing":
-            stop_api_requests = True
+            stop_reason = "API key missing"
 
         elif result["status"] == "Connection error":
-            stop_api_requests = True
+            stop_reason = "connection error"
 
     return hash_results

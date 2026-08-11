@@ -8,6 +8,7 @@ import sys
 # Custom modules created for this project
 from report import generate_report
 from scanner import scan_folder, calculate_risk_score, get_risk_level
+from virustotal_lookup import lookup_hash_results
 
 
 
@@ -99,6 +100,43 @@ def show_results(
             print("\nFile:", hash_result["file_path"])
             print("SHA256:", hash_result["sha256"])
 
+            print(
+                "VirusTotal status:",
+                hash_result.get("vt_status", "Not requested")
+            )
+
+            print(
+                "VirusTotal source:",
+                hash_result.get("vt_source", "None")
+            )
+
+            if hash_result.get("vt_status") == "Found":
+                print(
+                    "Malicious detections:",
+                    hash_result.get("vt_malicious", 0)
+                )
+
+                print(
+                    "Suspicious detections:",
+                    hash_result.get("vt_suspicious", 0)
+                )
+
+# Ask whether the user wants to use the optional online hash lookup
+def get_virustotal_choice():
+    print("\nOptional VirusTotal Lookup")
+    print("1. Yes")
+    print("2. No")
+
+    try:
+        choice = int(input("Perform VirusTotal online hash lookup? "))
+    except ValueError:
+        return 2
+
+    if choice == 1:
+        return 1
+
+    return 2
+
 #keep displaying the menu until the user choose exit
 def main():
     while True:
@@ -112,6 +150,25 @@ def main():
                 print("\nScanning files...")
 
                 scanned_files, findings, skipped_items, hash_results = scan_folder(scan_path)
+
+                # Phase 3 - Optional online hash lookup
+                if len(hash_results) > 0:
+                    vt_choice = get_virustotal_choice()
+
+                    if vt_choice == 1:
+                        print("\nChecking hashes with VirusTotal...")
+
+                        hash_results = lookup_hash_results(
+                            hash_results
+                        )
+
+                    else:
+                        # Mark hashes as local-only results
+                        for hash_result in hash_results:
+                            hash_result["vt_status"] = "Not requested"
+                            hash_result["vt_malicious"] = 0
+                            hash_result["vt_suspicious"] = 0
+                            hash_result["vt_source"] = "None"
 
                 risk_score = calculate_risk_score(findings)
                 risk_level = get_risk_level(risk_score)
